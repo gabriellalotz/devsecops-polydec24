@@ -1,4 +1,4 @@
-name: Security Scan
+name: sast-scan
 
 on: push
 
@@ -23,7 +23,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Install Bearer CLI
         run: curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/scripts/install.sh | sh
-      - name: Run Bearer CLI
+      - name: Verify Bearer is installed
+        run: bearer --version
+      - name: Run Bearer
         run: bearer scan --path . --output json --fail-on medium
       - name: Upload Bearer Report
         uses: actions/upload-artifact@v3
