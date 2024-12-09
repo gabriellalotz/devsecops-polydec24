@@ -19,19 +19,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      - name: Install Bearer CLI
-        run: curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/scripts/install.sh | sh
-      - name: Verify Bearer is installed
-        run: bearer --version
-      - name: Run Bearer
-        run: bearer scan --path . --output json --fail-on medium
-      - name: Upload Bearer Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: bearer-report
-          path: .bearer/results.json
+      - uses: actions/checkout@v4
+      - name: Bearer
+        uses: bearer/bearer-action@v2
 
   test: 
     needs: [build, security-scan]
