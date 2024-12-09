@@ -3,23 +3,44 @@ name: Security Scan
 on: push
 
 jobs:
-  bandit-scan:
+  build:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - run: npm install
+      - run: npm run build
+
+  security-scan:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Install Bearer CLI
+        run: curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/scripts/install.sh | sh
+      - name: Run Bearer CLI
+        run: bearer scan --path . --output json --fail-on medium
+      - name: Upload Bearer Report
+        uses: actions/upload-artifact@v3
         with:
-          python-version: 3.9
-      - name: Install Bandit
-        run: pip install bandit
-      - name: Run Bandit
-        run: bandit -r . -o bandit-report.txt -f txt
-      - name: Check Bandit Results
-        run: |
-          if grep -q "Issue" bandit-report.txt; then
-            echo "Vulnerabilities found. Please fix them.";
-            exit 1;
-          fi
-        continue-on-error: false
+          name: bearer-report
+          path: .bearer/results.json
+
+  test: 
+    needs: [build, security-scan]
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - run: npm install
+      - run: npm test
+
