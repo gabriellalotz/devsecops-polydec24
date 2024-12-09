@@ -1,0 +1,25 @@
+name: Security Scan
+
+on: push
+
+jobs:
+  bandit-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install Bandit
+        run: pip install bandit
+      - name: Run Bandit
+        run: bandit -r . -o bandit-report.txt -f txt
+      - name: Check Bandit Results
+        run: |
+          if grep -q "Issue" bandit-report.txt; then
+            echo "Vulnerabilities found. Please fix them.";
+            exit 1;
+          fi
+        continue-on-error: false
